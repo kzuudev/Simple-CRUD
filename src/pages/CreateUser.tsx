@@ -5,18 +5,12 @@ import type { User } from "@/types";
 import { Link } from "react-router-dom";
 
 export default function CreateUser() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  // const [name, setName] = useState("");
+  // const [email, setEmail] = useState("");
+  // const [phone, setPhone] = useState("");
+  // const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-  };
 
   const [form, setForm] = useState<User>({
     name: "",
@@ -24,6 +18,14 @@ export default function CreateUser() {
     phone: "",
     address: "",
   });
+
+  const handleChange = (e: React.FormEvent) => {};
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+  };
 
   return (
     <div className="w-[500px] flex flex-col p-10 border-2 border-black rounded-sm m-auto ">
@@ -36,29 +38,31 @@ export default function CreateUser() {
         <Input
           placeholder="Name"
           value={form.name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => e.target.value}
         />
 
         <Input
           placeholder="Email"
           value={form.email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => e.target.value}
         />
 
         <Input
           placeholder="Phone"
           value={form.phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => e.target.value}
         />
 
         <Input
           placeholder="Address"
           value={form.address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => e.target.value}
         />
 
         <div className="flex mt-4 justify-end gap-2 ">
-          <Button variant="outline">Create</Button>
+          <Button variant="outline" aria-label="submit">
+            Create
+          </Button>
           <Link to={"/pages/list-user"}>
             <Button variant="outline">Cancel</Button>
           </Link>
