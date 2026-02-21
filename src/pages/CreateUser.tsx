@@ -20,6 +20,17 @@ import {
 export default function CreateUser() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const [users, setUsers] = useState([]);
+
+  function getUsers() {
+    axios
+      .get("http://localhost:8080/REACT-CRUD/crud/crud-api/read.php")
+      .then((response) => {
+        setUsers(response.data);
+      });
+  }
 
   const [form, setForm] = useState<User>({
     name: "",
@@ -60,7 +71,7 @@ export default function CreateUser() {
       setError("");
 
       console.log(response.data);
-      alert("User created successfully!");
+      setOpen(false);
     } catch (error) {
       console.error(error);
       setError("Failed to create user");
@@ -70,9 +81,11 @@ export default function CreateUser() {
   };
 
   return (
-    <Dialog>
-      <div className="w-[500px] flex flex-col rounded-sm m-auto ">
-        <DialogTrigger>Create User</DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <div className="flex flex-col rounded-sm m-auto ">
+        <DialogTrigger className="px-4 py-2 bg-black text-white text-nowrap rounded-md">
+          Create User
+        </DialogTrigger>
 
         <DialogContent>
           <form className="flex flex-col py-6 gap-3 " onSubmit={handleSubmit}>

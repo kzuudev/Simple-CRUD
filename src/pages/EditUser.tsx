@@ -7,6 +7,7 @@ import axios from "axios";
 
 export default function EditUser() {
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
@@ -48,12 +49,12 @@ export default function EditUser() {
       );
       setLoading(true);
       setError("");
-
+      setSuccess("User successfully created!");
       console.log(response.data);
-      alert("User created successfully!");
     } catch (error) {
       console.error(error);
-      setError("Failed to create user");
+      setError("Failed to create user!");
+      setSuccess("");
     } finally {
       setLoading(false);
     }
@@ -99,6 +100,7 @@ export default function EditUser() {
           <Button variant="outline" aria-label="Submit" type="submit">
             Create
           </Button>
+
           <Link to={"/pages/list-user"}>
             <Button variant="destructive" type="button">
               Cancel

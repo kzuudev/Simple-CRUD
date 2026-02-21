@@ -3,12 +3,9 @@ import { useState, useEffect } from "react";
 import type { User } from "@/types";
 
 import { Button } from "@/components/ui/button";
+
 export default function ListUser() {
   const [users, setUsers] = useState<User[]>([]);
-
-  useEffect(() => {
-    getUsers();
-  }, []);
 
   function getUsers() {
     axios
@@ -18,6 +15,10 @@ export default function ListUser() {
         setUsers(response.data);
       });
   }
+
+  useEffect(() => {
+    getUsers();
+  }, []);
 
   return (
     <div className="mt-15">
