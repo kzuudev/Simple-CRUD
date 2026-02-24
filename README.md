@@ -15,7 +15,6 @@ A simple full-stack CRUD (Create, Read, Update, Delete) application built for pr
 ### Backend
 
 - PHP
-- REST API
 - MySQL
 
 ---

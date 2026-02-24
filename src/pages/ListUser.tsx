@@ -1,25 +1,37 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
+
+import { Link, useParams } from "react-router-dom";
+
 import type { User } from "@/types";
 
 import { Button } from "@/components/ui/button";
+import EditUser from "./EditUser";
 
-export default function ListUser() {
-  const [users, setUsers] = useState<User[]>([]);
+export default function ListUser({
+  users,
+  refetchUsers,
+}: {
+  users: User[];
+  refetchUsers: () => void;
+}) {
+  const [selectedUser, setSelectedUser] = useState<number | undefined>(
+    undefined,
+  );
 
-  function getUsers() {
+  const [open, setOpen] = useState(false);
+
+  console.log(selectedUser);
+  console.log(open);
+
+  function deleteUser(id: number | undefined) {
     axios
-      .get("http://localhost/REACT-CRUD/crud/crud-api/index.php")
+      .delete(`http://localhost/REACT-CRUD/crud/crud-api/delete.php?id=${id}`)
       .then(function (response) {
         console.log(response.data);
-        setUsers(response.data);
+        // getUsers();
       });
   }
-
-  useEffect(() => {
-    getUsers();
-  }, []);
-
   return (
     <div className="mt-15">
       <div className="w-full">
@@ -49,11 +61,34 @@ export default function ListUser() {
                 <td className="py-4">{user.created_at}</td>
                 <td className="py-4">{user.updated_at}</td>
                 <td className="flex py-4 gap-2 align-middle text-left">
-                  <Button>Edit</Button>
-                  <Button variant="destructive">Delete</Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedUser(user.id);
+                      setOpen(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    className="hover:bg-red-500"
+                    onClick={() => deleteUser(user.id)}
+                    variant="destructive"
+                  >
+                    Delete
+                  </Button>
                 </td>
               </tr>
             ))}
+
+            {selectedUser && (
+              <EditUser
+                id={selectedUser}
+                open={open}
+                setOpen={setOpen}
+                refreshUsers={refetchUsers}
+              />
+            )}
           </tbody>
         </table>
       </div>

@@ -1,16 +1,33 @@
-import React, { useState } from "react";
-import axios from "axios";
-// import ReactDOM from "react-router-dom";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import "./App.css";
-
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import axios from "axios";
+import { useState, useEffect, useContext, createContext } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Button } from "./components/ui/button";
 
 import ListUser from "./pages/ListUser";
 import CreateUser from "./pages/CreateUser";
 
+import type { User } from "@/types";
+
 function App() {
+  const UserContext = createContext([]);
+
+  const [users, setUsers] = useState<User[]>([]);
+
+  <UserContext value={users}></UserContext>;
+  function getUsers() {
+    axios
+      .get("http://localhost/REACT-CRUD/crud/crud-api/index.php")
+      .then(function (response) {
+        console.log(response.data);
+        setUsers(response.data);
+      });
+  }
+
+  useEffect(() => {
+    getUsers();
+  }, [setUsers]);
+
   return (
     <>
       <BrowserRouter>
@@ -24,15 +41,19 @@ function App() {
           </Link>
 
           <Button className="w-full" asChild>
-            <CreateUser />
+            <CreateUser refreshUsers={getUsers} />
           </Button>
         </div>
 
         <Routes>
           {/* List of Users */}
-          <Route path="/" element={<ListUser />}></Route>
+
+          {/* <Route path="/pages/user/:id" element={<EditUser />}></Route> */}
+          <Route
+            path="/"
+            element={<ListUser users={users} refetchUsers={getUsers} />}
+          ></Route>
         </Routes>
-        <ListUser />
       </BrowserRouter>
     </>
   );

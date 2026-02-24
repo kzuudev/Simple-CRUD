@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { User } from "@/types";
 import axios from "axios";
 
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,20 +17,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function CreateUser() {
+export default function CreateUser({
+  // Destructuring
+  refreshUsers,
+}: {
+  refreshUsers: () => void;
+}) {
+  const navigate = useNavigate();
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-
-  const [users, setUsers] = useState([]);
-
-  function getUsers() {
-    axios
-      .get("http://localhost:8080/REACT-CRUD/crud/crud-api/read.php")
-      .then((response) => {
-        setUsers(response.data);
-      });
-  }
 
   const [form, setForm] = useState<User>({
     name: "",
@@ -67,11 +64,18 @@ export default function CreateUser() {
           },
         },
       );
+      setOpen(false);
       setLoading(true);
       setError("");
-
-      console.log(response.data);
-      setOpen(false);
+      refreshUsers();
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        created_at: "",
+        updated_at: "",
+      });
     } catch (error) {
       console.error(error);
       setError("Failed to create user");
@@ -96,6 +100,7 @@ export default function CreateUser() {
                 you&apos;re done.
               </DialogDescription>
             </DialogHeader>
+
             <Input
               placeholder="Name"
               value={form.name}
@@ -104,6 +109,8 @@ export default function CreateUser() {
               required
             />
 
+            {error && <p className="text-red-500">{error}</p>}
+
             <Input
               placeholder="Email"
               value={form.email}
@@ -111,6 +118,7 @@ export default function CreateUser() {
               onChange={handleChange}
               required
             />
+            {error && <p className="text-red-500">{error}</p>}
 
             <Input
               placeholder="Phone"
@@ -119,6 +127,7 @@ export default function CreateUser() {
               onChange={handleChange}
               required
             />
+            {error && <p className="text-red-500">{error}</p>}
 
             <Input
               placeholder="Address"
@@ -127,6 +136,7 @@ export default function CreateUser() {
               onChange={handleChange}
               required
             />
+            {error && <p className="text-red-500">{error}</p>}
 
             <DialogFooter className="mt-4">
               <DialogClose asChild>

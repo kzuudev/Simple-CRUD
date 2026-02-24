@@ -59,7 +59,7 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->bindParam(':address', $user->address);
     $stmt->bindParam(':updated_at', $user->updated_at);
     $stmt->bindParam(':id', $user->id);
-    $stmt->execute();
+
 
     if($stmt->execute()) {
         $response = [
