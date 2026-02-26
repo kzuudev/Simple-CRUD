@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 
 
 
-$stmt = $pdo->query("SELECT * FROM users ORDER BY created_at ASC");
+$stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo json_encode($users);

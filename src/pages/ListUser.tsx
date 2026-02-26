@@ -1,35 +1,37 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
-
-import { Link, useParams } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
 
 import type { User } from "@/types";
 
 import { Button } from "@/components/ui/button";
-import EditUser from "./EditUser";
 
-export default function ListUser({
-  users,
-  refetchUsers,
-}: {
-  users: User[];
-  refetchUsers: () => void;
-}) {
+import EditUser from "./EditUser";
+import { UserContext } from "./UserContext";
+
+export default function ListUser() {
   const [selectedUser, setSelectedUser] = useState<number | undefined>(
     undefined,
   );
-
   const [open, setOpen] = useState(false);
 
-  console.log(selectedUser);
-  console.log(open);
+  const context = useContext(UserContext);
+
+  if (!context) {
+    return null;
+  }
+
+  const { users, setUsers, getUsers } = context;
+
+  useEffect(() => {
+    getUsers();
+  }, []);
 
   function deleteUser(id: number | undefined) {
     axios
       .delete(`http://localhost/REACT-CRUD/crud/crud-api/delete.php?id=${id}`)
       .then(function (response) {
         console.log(response.data);
-        // getUsers();
+        getUsers();
       });
   }
   return (
@@ -82,12 +84,7 @@ export default function ListUser({
             ))}
 
             {selectedUser && (
-              <EditUser
-                id={selectedUser}
-                open={open}
-                setOpen={setOpen}
-                refreshUsers={refetchUsers}
-              />
+              <EditUser id={selectedUser} open={open} setOpen={setOpen} />
             )}
           </tbody>
         </table>

@@ -15,9 +15,6 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
        
         $id = $_GET['id'] ?? null;
   
-        // $path = explode('/', $_SERVER['REQUEST_URI']);
-        // print_r($path);
-
         if(isset($id) && is_numeric($id)) {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
             $stmt->bindParam(':id', $id);

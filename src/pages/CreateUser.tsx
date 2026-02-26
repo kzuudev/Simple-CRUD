@@ -1,8 +1,6 @@
-import React, { useState } from "react";
-import type { User } from "@/types";
+import React, { useState, useContext } from "react";
+import { type FormError, type User } from "@/types";
 import axios from "axios";
-
-import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,17 +15,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export default function CreateUser({
-  // Destructuring
-  refreshUsers,
-}: {
-  refreshUsers: () => void;
-}) {
-  const navigate = useNavigate();
+import { UserContext } from "./UserContext";
 
-  const [error, setError] = useState("");
+export default function CreateUser() {
+  const [error, setError] = useState<FormError>({});
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const context = useContext(UserContext);
+
+  if (!context) return null;
+
+  const { getUsers } = context;
 
   const [form, setForm] = useState<User>({
     name: "",
@@ -37,6 +36,20 @@ export default function CreateUser({
     created_at: "",
     updated_at: "",
   });
+
+  const validate = (): boolean => {
+    const errors: FormError = {};
+
+    if (!form.name) errors.name = "Name is required";
+    if (!form.email || !form.email.includes("@"))
+      errors.email = "Invalid Email";
+    if (form.phone.length < 10) errors.phone = "Phone is too short";
+
+    setError(errors);
+
+    // check if there's no error
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,33 +65,35 @@ export default function CreateUser({
     e.preventDefault();
 
     try {
-      console.log("Form submitted", form);
+      const isValid = validate();
 
-      const response = await axios.post(
-        "http://localhost/REACT-CRUD/crud/crud-api/create.php",
-        form,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
+      if (!isValid) {
+        return;
+      } else {
+        const response = await axios.post(
+          "http://localhost/REACT-CRUD/crud/crud-api/create.php",
+          form,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        },
-      );
-      setOpen(false);
-      setLoading(true);
-      setError("");
-      refreshUsers();
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        created_at: "",
-        updated_at: "",
-      });
+        );
+        setOpen(false);
+        setLoading(true);
+        getUsers();
+        setForm({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          created_at: "",
+          updated_at: "",
+        });
+      }
     } catch (error) {
       console.error(error);
-      setError("Failed to create user");
     } finally {
       setLoading(false);
     }
@@ -100,7 +115,6 @@ export default function CreateUser({
                 you&apos;re done.
               </DialogDescription>
             </DialogHeader>
-
             <Input
               placeholder="Name"
               value={form.name}
@@ -108,9 +122,9 @@ export default function CreateUser({
               onChange={handleChange}
               required
             />
-
-            {error && <p className="text-red-500">{error}</p>}
-
+            {error.name && (
+              <span className="text-xs text-red-500">{error.name}</span>
+            )}
             <Input
               placeholder="Email"
               value={form.email}
@@ -118,8 +132,9 @@ export default function CreateUser({
               onChange={handleChange}
               required
             />
-            {error && <p className="text-red-500">{error}</p>}
-
+            {error.email && (
+              <span className="text-xs text-red-500">{error.email}</span>
+            )}
             <Input
               placeholder="Phone"
               value={form.phone}
@@ -127,8 +142,9 @@ export default function CreateUser({
               onChange={handleChange}
               required
             />
-            {error && <p className="text-red-500">{error}</p>}
-
+            {error.phone && (
+              <span className="text-xs text-red-500">{error.phone}</span>
+            )}
             <Input
               placeholder="Address"
               value={form.address}
@@ -136,8 +152,9 @@ export default function CreateUser({
               onChange={handleChange}
               required
             />
-            {error && <p className="text-red-500">{error}</p>}
-
+            {error.address && (
+              <span className="text-xs text-red-500">{error.address}</span>
+            )}
             <DialogFooter className="mt-4">
               <DialogClose asChild>
                 <Button variant="destructive" type="button">

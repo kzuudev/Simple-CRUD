@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import type { User } from "@/types";
-import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 import { Input } from "@/components/ui/input";
@@ -15,30 +14,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { UserContext } from "./UserContext";
 
 type EditUserProps = {
   id?: number;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  refreshUsers: () => void;
 };
 
-export default function EditUser({
-  id,
-  open,
-  setOpen,
-  refreshUsers,
-}: EditUserProps) {
-  const navigate = useNavigate();
-
+export default function EditUser({ id, open, setOpen }: EditUserProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // const [open, setOpen] = useState(false);
+  const context = useContext(UserContext);
 
-  // const { id } = useParams();
-  // console.log(id);
+  if (!context) {
+    return null;
+  }
+
+  const { getUsers } = context;
 
   const [form, setForm] = useState<User>({
     name: "",
@@ -93,8 +88,7 @@ export default function EditUser({
       setLoading(true);
       setError("");
       setSuccess("User successfully updated!");
-
-      refreshUsers();
+      getUsers();
       console.log(response.data);
     } catch (error) {
       console.error(error);
@@ -155,12 +149,6 @@ export default function EditUser({
                 <Button variant="outline" aria-label="Submit" type="submit">
                   Save Changes
                 </Button>
-
-                {/* <Link to={"/pages/list-user"}>
-                <Button variant="destructive" type="button">
-                  Cancel
-                </Button>
-              </Link> */}
               </DialogClose>
 
               <DialogClose>
