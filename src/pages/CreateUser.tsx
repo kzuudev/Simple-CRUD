@@ -1,5 +1,9 @@
 import React, { useState, useContext } from "react";
-import { type FormError, type User } from "@/types";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import type { User, FormError } from "@/types";
 import axios from "axios";
 
 import { Input } from "@/components/ui/input";
@@ -18,86 +22,134 @@ import {
 import { UserContext } from "./UserContext";
 
 export default function CreateUser() {
-  const [error, setError] = useState<FormError>({});
+
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const context = useContext(UserContext);
+    const UserSchema = z.object({
+    name: z.string().min(1,{message: "Name is required"}),
+    email: z.string().email({message: "Invalid email address"}),
+    phone: z.string().min(10, { message: "Phone must be at least 10 digits" }),
+    address: z.string().min(5, {message: "Address is too short"}),
 
+
+    id: z.number().optional(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional()
+  });
+
+  type UserFormValues = z.infer<typeof UserSchema>;
+
+  const {register, handleSubmit, reset, formState: { errors }} = useForm<UserFormValues>({
+    resolver: zodResolver(UserSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      address: ""
+    }
+    
+  })
+
+
+  const context = useContext(UserContext);
   if (!context) return null;
 
   const { getUsers } = context;
 
-  const [form, setForm] = useState<User>({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    created_at: "",
-    updated_at: "",
-  });
 
-  const validate = (): boolean => {
-    const errors: FormError = {};
+  // const [form, setForm] = useState<User>({
+  //   name: "",
+  //   email: "",
+  //   phone: "",
+  //   address: "",
+  //   created_at: "",
+  //   updated_at: "",
+  // });
 
-    if (!form.name) errors.name = "Name is required";
-    if (!form.email || !form.email.includes("@"))
-      errors.email = "Invalid Email";
-    if (form.phone.length < 10) errors.phone = "Phone is too short";
+  // const validate = (): boolean => {
+  //   const errors: FormError = {};
 
-    setError(errors);
+  //   if (!form.name) errors.name = "Name is required";
+  //   if (!form.email || !form.email.includes("@"))
+  //     errors.email = "Invalid Email";
+  //   if (form.phone.length < 10) errors.phone = "Phone is too short";
 
-    // check if there's no error
-    return Object.keys(errors).length === 0;
-  };
+  //   setError(errors);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  //   // check if there's no error
+  //   return Object.keys(errors).length === 0;
+  // };
 
-    // Update state of each input safely
-    setForm((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  //   // Update state of each input safely
+  //   setForm((prevData) => ({
+  //     ...prevData,
+  //     [name]: value,
+  //   }));
+  // };
 
-    try {
-      const isValid = validate();
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
 
-      if (!isValid) {
-        return;
-      } else {
-        const response = await axios.post(
-          "http://localhost/REACT-CRUD/crud/crud-api/create.php",
-          form,
-          {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
+  //   try {
+  //     const isValid = validate();
+
+  //     if (!isValid) {
+  //       return;
+  //     } else {
+  //       const response = await axios.post(
+  //         "http://localhost/REACT-CRUD/crud/crud-api/create.php",
+  //         form,
+  //         {
+  //           withCredentials: true,
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //         },
+  //       );
+  //       setOpen(false);
+  //       setLoading(true);
+  //       getUsers();
+  //       setForm({
+  //         name: "",
+  //         email: "",
+  //         phone: "",
+  //         address: "",
+  //         created_at: "",
+  //         updated_at: "",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+  const onSubmit = async (data: UserFormValues) => {
+      setLoading(true);
+
+      try{
+        const response = await axios.post("http://localhost/REACT-CRUD/crud/crud-api/create.php", data, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          }
+        })
+        console.log(response);
         setOpen(false);
-        setLoading(true);
         getUsers();
-        setForm({
-          name: "",
-          email: "",
-          phone: "",
-          address: "",
-          created_at: "",
-          updated_at: "",
-        });
+        reset();
+      }catch (err) {
+        console.error("Submission failed", err);
+      }finally{
+        setLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,54 +159,53 @@ export default function CreateUser() {
         </DialogTrigger>
 
         <DialogContent>
-          <form className="flex flex-col py-6 gap-3 " onSubmit={handleSubmit}>
+          <form className="flex flex-col pt-5 gap-3" onSubmit={handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle>New User</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="mb-4">
                 Make sure to provide necessary details here. Click save when
                 you&apos;re done.
               </DialogDescription>
             </DialogHeader>
-            <Input
+            
+            <div>
+              <Input
+              type="text"
               placeholder="Name"
-              value={form.name}
-              name="name"
-              onChange={handleChange}
-              required
+              // name="name"
+              {...register("name")}
             />
-            {error.name && (
-              <span className="text-xs text-red-500">{error.name}</span>
-            )}
+            {errors.name && <p className="mt-2 text-xs text-red-500">{errors.name?.message}</p>}
+            </div>
+            
+            <div>
+              <Input
+                type="email"
+                placeholder="Email"
+                // name="email"
+                {...register("email")}
+              />
+            {errors.name && <p className="mt-2 text-xs text-red-500">{errors.email?.message}</p>}
+            </div>
+            
+            
+          <div>
             <Input
-              placeholder="Email"
-              value={form.email}
-              name="email"
-              onChange={handleChange}
-              required
-            />
-            {error.email && (
-              <span className="text-xs text-red-500">{error.email}</span>
-            )}
-            <Input
+              type="number"
               placeholder="Phone"
-              value={form.phone}
-              name="phone"
-              onChange={handleChange}
-              required
+              {...register("phone")}
             />
-            {error.phone && (
-              <span className="text-xs text-red-500">{error.phone}</span>
-            )}
-            <Input
-              placeholder="Address"
-              value={form.address}
-              name="address"
-              onChange={handleChange}
-              required
-            />
-            {error.address && (
-              <span className="text-xs text-red-500">{error.address}</span>
-            )}
+            {errors.name && <p className="mt-2 text-xs text-red-500">{errors.phone?.message}</p>}
+          </div>
+            
+            <div>
+              <Input
+                type="text"
+                placeholder="Address"
+                {...register("address")}
+              />
+            </div>
+            {errors.name && <p className="mt-2 text-xs text-red-500">{errors.address?.message}</p>}
             <DialogFooter className="mt-4">
               <DialogClose asChild>
                 <Button variant="destructive" type="button">
